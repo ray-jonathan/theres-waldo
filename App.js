@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, Text, View, StyleSheet } from 'react-native';
+import { Platform, Text, View, StyleSheet, Image, } from 'react-native';
 import { Constants, Location, Permissions } from 'expo';
 import destVincenty from './utils/destVincenty';
 import distVincenty from './utils/distVincenty';
@@ -93,11 +93,11 @@ export default class App extends Component {
         break;
     }
 
-    // DUE E
-    const targetCoords = {lat: 33.8019066533606,lng: -83.72027814388277}
+    // // DUE E
+    // const targetCoords = {lat: 33.8019066533606,lng: -83.72027814388277}
 
-    // // // DUE SW
-    // const targetCoords = {lat: 33.351671,lng: -84.69227}
+    // // DUE SW
+    const targetCoords = {lat: 33.351671,lng: -84.69227}
 
     console.log("-----------------------------------------");
     console.log(targetCoords);
@@ -149,6 +149,11 @@ export default class App extends Component {
         <Text style={styles.paragraph}>bearing: {headingNew}</Text>
         <Text style={styles.paragraph}>staticBearingJune (deg): {bearingJune}</Text> */}
         <Text style={styles.paragraph}>Destination Heading: {headingJune}</Text>
+        <Text style={styles.paragraph}> </Text>
+        <Image
+          style={{width: 150, height: 150, transform: [{ rotate: `${(parseFloat(headingJune)*-1)}deg` }]}}
+          source={require('./assets/waldo-arrow.png')}
+        />
         <Text style={styles.paragraph}> </Text>
         <Text style={styles.paragraph}>Heading: {heading}</Text>
         <Text style={styles.nextLine}>({headingAccuracy}°)</Text>

@@ -15,6 +15,7 @@ export default class App extends Component {
       heading: null,
       accuracy: null,
       coordsAccuracy: null,
+      targetCoords: null,
     };
   }
 
@@ -27,6 +28,7 @@ export default class App extends Component {
       });
     } else {
       this._getLocationAsync();
+      this._fetchTargetCoords();
     }
   }
 
@@ -58,6 +60,13 @@ export default class App extends Component {
       }
     });
   };
+
+  _fetchTargetCoords = async () => {
+    let response = await fetch('http://waldo.jonathan-ray.com/');
+    let responseJson = await response.json();
+    console.log(responseJson.coordinates);
+    this.setState({targetCoords : responseJson.coordinates})
+  }
 
   render() {
         // Converts from degrees to radians.
@@ -97,7 +106,11 @@ export default class App extends Component {
     // const targetCoords = {lat: 33.8019066533606,lng: -83.72027814388277}
 
     // // DUE SW
-    const targetCoords = {lat: 33.351671,lng: -84.69227}
+    let targetCoords = {lat: 33.351671,lng: -84.69227}
+    if(this.state.targetCoords){
+      console.log("COORDINATES SET BY API");
+      targetCoords = this.state.targetCoords
+    }
 
     console.log("-----------------------------------------");
     console.log(targetCoords);

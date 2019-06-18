@@ -93,63 +93,12 @@ export default class App extends Component {
         break;
     }
 
-
-    // let everyDirectionBasedOnHeadingArray = [];
-    // for(let i=0; i < 8; i++){
-    //   const j = i * 45;
-    //   const k = heading + j;
-    //   console.log(k);
-    //   console.log(heading);
-    //   if ( k > 360 ){
-    //     k = k - 360;
-    //   }
-    //   everyDirectionBasedOnHeadingArray.push(k)
-    // }
-    // const distancesObject = {}
-    // everyDirectionBasedOnHeadingArray.forEach(val => {
-    //   const waldoCoords = destVincenty(lat, long, val, 10);
-    //   const eachDirectionDistance = parseFloat(distVincenty(lat, long, waldoCoords.lat, waldoCoords.lng)).toFixed(1);
-    //   distancesObject[eachDirectionDistance] = val
-    // });
-    // const leastDistance = Math.min(...Object.keys(distancesObject));
-    // console.log("least dist ",leastDistance);
-    // const leastDirection =  distancesObject[leastDistance];
-    
-    // const directions = [0, 45, 90, 135, 180, 225, 270, 315];
-    // const directions1 = directions.map(d => d + this.state.heading);
-    // const distances = {};
+    // DUE E
     const targetCoords = {lat: 33.8019066533606,lng: -83.72027814388277}
-    // const targetCoords = {lat: 90,lng: 0}
-    // directions.forEach(direction => {
-    //   const destCoords = destVincenty(lat, long, direction, 10)
-    //   const key = parseFloat(distVincenty(targetCoords.lat, targetCoords.lng, destCoords.lat, destCoords.lng))
-    //   distances[key] = direction;
-    // })
-    // const shortestDist = Math.min(...Object.keys(distances));
-    // // if (!shortestDist){
-    // //   console.log("shortestDist: ", shortestDist);
-    // // }
-    // let shortestDirection = distances[parseFloat(shortestDist)];
-    // if (!shortestDirection){
-    //   console.log("===========================================================");
-    //   console.log("distances: ", distances);
-    //   console.log("shortestDist: ", parseFloat(shortestDist));
-    //   console.log("===========================================================");
-    // }
-    // console.log(shortestDirection);
-    // shortestDirection = shortestDirection.toString();
-    // shortestDistKM = (shortestDist/1000).toFixed(1)
 
-    // const cardinal = {
-    //   0 : "North",
-    //   45 : "NorthEast",
-    //   90 : "East",
-    //   135 : "SouthEast",
-    //   180 : "South",
-    //   225 : "SouthWest",
-    //   270 : "West",
-    //   315 : "NorthWest",
-    // }
+    // // // DUE SW
+    // const targetCoords = {lat: 33.351671,lng: -84.69227}
+
     console.log("-----------------------------------------");
     console.log(targetCoords);
     console.log("-----------------------------------------");
@@ -170,32 +119,40 @@ export default class App extends Component {
     let bearingNew = (Math.degrees(Math.atan2(deltaLongitude, deltaPhi)) + 360.0) % 360.0;
     let headingNew = ((bearingNew - this.state.heading) * -1).toFixed(3);
 
-
-    // let lat1 = (0.0174533 * lat);
-    // let lng1 = (0.0174533 * long);
-    // let lat2 = (0.0174533 * targetCoords.lat)
-    // let lng2 = (0.0174533 * targetCoords.lng)
-    // let dLat = lat2 - lat1; // difference between the LATITUDES
-    // let dLon = lng2 - lng1; // difference between the LONGITUDES
-    // let y = Math.sin( dLon ) * Math.cos( dLat ); // 
-    // let x = Math.cos( lat1 ) * Math.sin( lat2 ) - Math.sin( lat1 ) * Math.cos( lat2 ) * Math.cos( dLon );
-    // let bearing = Math.atan2(y, x);
-    // console.log("bearing, ", bearing);
-    // if( bearing < 0 ){
-    //   console.log("shouldn't see this");
-    //   bearing += (2*Math.PI);
-    // }
-    // bearing = bearing / 0.0174533
-    // // const newBearing = (heading* Math.PI / 180)+ bearing;
-    // // let newBearing = ((heading* Math.PI / 180)+ bearing)* 57.2958;
-    // // let newBearing = ((heading)+ bearing)* 57.2958;
-    // let newBearing = ((heading)+ bearing);
-    // console.log("heading: ",heading);
-    // console.log("bearing: ",bearing);
-    // if (newBearing > 360){
-    //   newBearing -=360
-    // }
-
+    let bearingJune = Math.degrees(Math.atan2(deltaLongitude, deltaPhi)).toFixed(3);
+    let headingJune = 0;
+    if (this.state.heading){
+      let phoneHeading = parseFloat(this.state.heading);
+      // if(this.state.heading > 180){
+      //   phoneHeading = this.state.heading - 360;
+      // }
+      bearingJune = parseFloat(bearingJune)
+      let breakingPoint = bearingJune + 180;
+      if (breakingPoint > 360){
+        breakingPoint = breakingPoint - 360;
+        // console.log("breakingPointChanged: ", breakingPoint);
+      }
+      // if(bearingJune > 180){
+      //   bearingJune = 180 - bearingJune;
+      // }
+      // headingJune = (bearingJune - this.state.heading).toFixed(3)
+      headingJune = parseFloat((phoneHeading - bearingJune).toFixed(3))
+      if (phoneHeading > breakingPoint){
+        console.log(" ");
+        console.log("entering the breakpoint!");
+        console.log(" ");
+        headingJune = headingJune - 360;
+      }
+          if(typeof headingJune === "string"){
+            console.log("Failure!");
+          };
+      console.log("bearingJune: ", bearingJune);
+      console.log("breakingPoint: ", breakingPoint);
+      console.log("phoneHeading: ",phoneHeading.toFixed(3));
+      console.log(`${phoneHeading} - ${bearingJune} = ${headingJune}`);
+      
+      
+    };
     
     lat = parseFloat(lat).toFixed(6)
     long = parseFloat(long).toFixed(6)
@@ -209,12 +166,9 @@ export default class App extends Component {
         <Text style={styles.nextLine}>Long: {long}</Text>
         <Text style={styles.nextLine}>(+/- {coordsAccuracy}m)</Text>
         <Text style={styles.paragraph}> </Text>
-        {/* <Text style={styles.paragraph}>{shortestDistKM}km</Text> */}
-        {/* <Text style={styles.nextLine}>{cardinal[shortestDirection]}</Text> */}
         <Text style={styles.paragraph}>bearing: {headingNew}</Text>
-        {/* <Text style={styles.nextLine}>leastDirection: {leastDirection.toFixed(2)}</Text> */}
-        {/* <Text style={styles.nextLine}>leastDirection: {(leastDirection - heading).toFixed(4)} (corrected)</Text> */}
-
+        <Text style={styles.paragraph}>staticBearingJune (deg): {bearingJune}</Text>
+        <Text style={styles.paragraph}>HeadingJune (deg): {headingJune}</Text>
         <Text style={styles.paragraph}> </Text>
         <Text style={styles.paragraph}>Heading: {heading}</Text>
         <Text style={styles.nextLine}>({headingAccuracy}°)</Text>

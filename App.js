@@ -123,35 +123,15 @@ export default class App extends Component {
     let headingJune = 0;
     if (this.state.heading){
       let phoneHeading = parseFloat(this.state.heading);
-      // if(this.state.heading > 180){
-      //   phoneHeading = this.state.heading - 360;
-      // }
       bearingJune = parseFloat(bearingJune)
       let breakingPoint = bearingJune + 180;
       if (breakingPoint > 360){
         breakingPoint = breakingPoint - 360;
-        // console.log("breakingPointChanged: ", breakingPoint);
       }
-      // if(bearingJune > 180){
-      //   bearingJune = 180 - bearingJune;
-      // }
-      // headingJune = (bearingJune - this.state.heading).toFixed(3)
       headingJune = parseFloat((phoneHeading - bearingJune).toFixed(3))
       if (phoneHeading > breakingPoint){
-        console.log(" ");
-        console.log("entering the breakpoint!");
-        console.log(" ");
         headingJune = headingJune - 360;
       }
-          if(typeof headingJune === "string"){
-            console.log("Failure!");
-          };
-      console.log("bearingJune: ", bearingJune);
-      console.log("breakingPoint: ", breakingPoint);
-      console.log("phoneHeading: ",phoneHeading.toFixed(3));
-      console.log(`${phoneHeading} - ${bearingJune} = ${headingJune}`);
-      
-      
     };
     
     lat = parseFloat(lat).toFixed(6)
@@ -161,14 +141,14 @@ export default class App extends Component {
     heading = parseFloat(heading).toFixed(4)
     return (
       <View style={styles.container}>
-        <Text style={styles.paragraph}>{text}</Text>
+        {/* <Text style={styles.paragraph}>{text}</Text>
         <Text style={styles.paragraph}>Lat: {lat}</Text>
         <Text style={styles.nextLine}>Long: {long}</Text>
         <Text style={styles.nextLine}>(+/- {coordsAccuracy}m)</Text>
         <Text style={styles.paragraph}> </Text>
         <Text style={styles.paragraph}>bearing: {headingNew}</Text>
-        <Text style={styles.paragraph}>staticBearingJune (deg): {bearingJune}</Text>
-        <Text style={styles.paragraph}>HeadingJune (deg): {headingJune}</Text>
+        <Text style={styles.paragraph}>staticBearingJune (deg): {bearingJune}</Text> */}
+        <Text style={styles.paragraph}>Destination Heading: {headingJune}</Text>
         <Text style={styles.paragraph}> </Text>
         <Text style={styles.paragraph}>Heading: {heading}</Text>
         <Text style={styles.nextLine}>({headingAccuracy}°)</Text>

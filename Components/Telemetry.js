@@ -8,6 +8,7 @@ const { width } = Dimensions.get('window');
 export default class Telemetry extends React.Component{
   constructor(props){
     super(props)
+    console.log(props);
   }
   componentDidMount(){
     this.scrollView.scrollTo({x: width});

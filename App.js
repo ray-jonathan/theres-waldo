@@ -39,6 +39,7 @@ export default class App extends Component {
       accuracy: null,
       coordsAccuracy: null,
       targetCoords: null,
+      users: null,
     };
   }
 
@@ -126,8 +127,11 @@ export default class App extends Component {
       this.connection.send(JSON.stringify({message: 'hey'}));
     };
     this.connection.onmessage = ({data}) => {
-      const targetCoords = (JSON.parse(data)).coordinates
-      this.setState({targetCoords})
+      console.log(data);
+      const dataJson = (JSON.parse(data))
+      const targetCoords = dataJson.coordinates
+      const users = dataJson.users
+      this.setState({targetCoords, users,})
     };
   }
 

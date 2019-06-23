@@ -1,8 +1,29 @@
 import React, { Component } from 'react';
 import { Platform, Text, View, StyleSheet, Image, } from 'react-native';
 import { Constants, Location, Permissions } from 'expo';
+import Arrow from './Components/Arrow';
 import destVincenty from './utils/destVincenty';
 import distVincenty from './utils/distVincenty';
+// import * as firebase from 'firebase';
+// import '@firebase/firestore';
+
+// // Initialize Firebase
+// const firebaseConfig = {
+//   apiKey: "AIzaSyCMtnFpkDbP-dpDnmgHeNoThkCikn4HE_k",
+//   authDomain: "theres-waldo-7b890.firebaseapp.com",
+//   databaseURL: "https://theres-waldo-7b890.firebaseio.com/",
+//   storageBucket: "gs://theres-waldo-7b890.appspot.com"
+// };
+
+// firebase.initializeApp(firebaseConfig);
+
+// const dbh = firebase.firestore();
+
+// dbh.collection("characters").doc("mario").set({
+//   employment: "plumber",
+//   outfitColor: "red",
+//   specialAttack: "fireball"
+// })
 
 export default class App extends Component {
   constructor(props){
@@ -19,7 +40,48 @@ export default class App extends Component {
     };
   }
 
+  componentDidMount(){
+    console.log(" ");
+    console.log(" ");
+    console.log(" ");
+    console.log(" ");
+    console.log("Trying to establish socket.");
+    const url = 'ws://waldo.jonathan-ray.com/ws'
+    // this.connection = new WebSocket(url);
+    this.connection = new WebSocket(url)
 
+    this.connection.onopen = () => {
+      this.connection.send(JSON.stringify({message: 'hey'}));
+    };
+
+    this.connection.onerror = (error) => {
+      console.log(" ");
+      console.log(" ");
+      console.log(" ");
+      console.log(" ");
+      console.log(`WebSocket error: ${error}`);
+      console.log(" ");
+      console.log(" ");
+      console.log(" ");
+      console.log(" ");
+    };
+
+    this.connection.onmessage = (e) => {
+      console.log(" ");
+      console.log(" ");
+      console.log(" ");
+      console.log(" ");
+      console.log(e.data);
+      console.log(" ");
+      console.log(" ");
+      console.log(" ");
+      console.log(" ");
+    };
+    console.log(" ");
+    console.log(" ");
+    console.log(" ");
+    console.log(" ");
+  }
 
   componentWillMount() {
     if (Platform.OS === 'android' && !Constants.isDevice) {
@@ -78,13 +140,13 @@ export default class App extends Component {
     Math.degrees = function(radians) {
       return radians * 180 / Math.PI;
     };
-    let text = ' ';
-    text = JSON.stringify(this.state.location);
+    // let text = ' ';
+    // text = JSON.stringify(this.state.location);
     let lat = this.state.latitude;
     let long = this.state.longitude;
     let heading = this.state.heading;
     let accuracy = this.state.accuracy;
-    let coordsAccuracy = this.state.coordsAccuracy;
+    // let coordsAccuracy = this.state.coordsAccuracy;
 
     let headingAccuracy = " "
     switch (accuracy){
@@ -112,25 +174,31 @@ export default class App extends Component {
       targetCoords = this.state.targetCoords
     }
 
-    console.log("-----------------------------------------");
-    console.log(targetCoords);
-    console.log("-----------------------------------------");
+    // console.log("-----------------------------------------");
+    // console.log(targetCoords);
+    // console.log("-----------------------------------------");
     const latitude1 = Math.radians(lat);
     const longitude1 = Math.radians(long);
     const latitude2 = Math.radians(targetCoords.lat);
     const longitude2 = Math.radians(targetCoords.lng);
     const deltaLongitude = longitude2 - longitude1;
     deltaPhi = Math.log(Math.tan(latitude2/2.0+Math.PI/4.0)/Math.tan(latitude1/2.0+Math.PI/4.0))
-    if (Math.abs(deltaLongitude) > Math.PI){
-      if (deltaLongitude > 0.0){
-        deltaLongitude = -(2.0 * Math.PI - deltaLongitude)
-      }
-      else{
-        deltaLongitude = (2.0 * Math.PI + deltaLongitude)
-      }
-    }
-    let bearingNew = (Math.degrees(Math.atan2(deltaLongitude, deltaPhi)) + 360.0) % 360.0;
-    let headingNew = ((bearingNew - this.state.heading) * -1).toFixed(3);
+
+
+    // //  KEEP IN CASE OF NEED  // //
+    // if (Math.abs(deltaLongitude) > Math.PI){
+    //   if (deltaLongitude > 0.0){
+    //     deltaLongitude = -(2.0 * Math.PI - deltaLongitude)
+    //   }
+    //   else{
+    //     deltaLongitude = (2.0 * Math.PI + deltaLongitude)
+    //   }
+    // }
+    // // // // // // // // // // //
+
+
+    // let bearingNew = (Math.degrees(Math.atan2(deltaLongitude, deltaPhi)) + 360.0) % 360.0;
+    // let headingNew = ((bearingNew - this.state.heading) * -1).toFixed(3);
 
     let bearingJune = Math.degrees(Math.atan2(deltaLongitude, deltaPhi)).toFixed(3);
     let headingJune = 0;
@@ -147,9 +215,9 @@ export default class App extends Component {
       }
     };
     
-    lat = parseFloat(lat).toFixed(6)
-    long = parseFloat(long).toFixed(6)
-    coordsAccuracy = parseFloat(coordsAccuracy).toFixed(2)
+    // lat = parseFloat(lat).toFixed(6)
+    // long = parseFloat(long).toFixed(6)
+    // coordsAccuracy = parseFloat(coordsAccuracy).toFixed(2)
     // bearing = parseFloat(bearing).toFixed(4)
     heading = parseFloat(heading).toFixed(4)
     return (
@@ -163,10 +231,7 @@ export default class App extends Component {
         <Text style={styles.paragraph}>staticBearingJune (deg): {bearingJune}</Text> */}
         <Text style={styles.paragraph}>Destination Heading: {headingJune}</Text>
         <Text style={styles.paragraph}> </Text>
-        <Image
-          style={{width: 150, height: 150, transform: [{ rotate: `${(parseFloat(headingJune)*-1)}deg` }]}}
-          source={require('./assets/waldo-arrow.png')}
-        />
+        <Arrow headingJune={headingJune} />
         <Text style={styles.paragraph}> </Text>
         <Text style={styles.paragraph}>Heading: {heading}</Text>
         <Text style={styles.nextLine}>({headingAccuracy}°)</Text>

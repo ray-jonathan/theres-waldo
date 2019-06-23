@@ -1,3 +1,5 @@
+// This formula returns the distance between two coordinates.
+// It is more accurate than Haversine or an assumed "flat Earth" based approach
 export default function distVincenty(lat1, lon1, lat2, lon2) {
   function toRad(n) {
     return n * Math.PI / 180;

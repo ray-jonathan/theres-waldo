@@ -1,3 +1,5 @@
+// This formula is for finding the coordinates of a place given your own location, 
+// the direction you intend to go, and how far you intend to go
 export default function destVincenty(lat1, lon1, brng, dist) {
   function toRad(n) {
     return n * Math.PI / 180;

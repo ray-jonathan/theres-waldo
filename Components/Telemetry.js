@@ -131,7 +131,7 @@ export default class Telemetry extends React.Component{
     snapToInterval={width}
     snapToAlignment={"center"}
     >
-      <Map style={styles.map}/>
+      <Map style={styles.map} users={this.props.users} />
       <Arrow style={styles.arrow} headingJune={headingJune} width={width} />
     </ScrollView>
     )

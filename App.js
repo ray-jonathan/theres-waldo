@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 import { Platform, Text, View, StyleSheet, Image, } from 'react-native';
 import { Constants, Location, Permissions } from 'expo';
-import Arrow from './Components/Arrow';
-import Map from './Components/Map';
-import destVincenty from './utils/destVincenty';
-import distVincenty from './utils/distVincenty';
 import Telemetry from './Components/Telemetry';
 // import * as firebase from 'firebase';
 // import '@firebase/firestore';
@@ -31,7 +27,6 @@ export default class App extends Component {
   constructor(props){
     super(props);
     this.state = {
-      // location: null,
       latitude: null,
       longitude: null,
       errorMessage: null,
@@ -42,49 +37,6 @@ export default class App extends Component {
       users: null,
     };
   }
-
-  // componentDidMount(){
-  //   console.log(" ");
-  //   console.log(" ");
-  //   console.log(" ");
-  //   console.log(" ");
-  //   console.log("Trying to establish socket.");
-  //   const url = 'ws://waldo.jonathan-ray.com/ws'
-  //   // this.connection = new WebSocket(url);
-  //   this.connection = new WebSocket(url)
-
-  //   this.connection.onopen = () => {
-  //     this.connection.send(JSON.stringify({message: 'hey'}));
-  //   };
-
-  //   this.connection.onerror = (error) => {
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(`WebSocket error: ${error}`);
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(" ");
-  //   };
-
-  //   this.connection.onmessage = (e) => {
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(e.data);
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(" ");
-  //     console.log(" ");
-  //   };
-  //   console.log(" ");
-  //   console.log(" ");
-  //   console.log(" ");
-  //   console.log(" ");
-  // }
 
   componentWillMount() {
     if (Platform.OS === 'android' && !Constants.isDevice) {
@@ -97,19 +49,37 @@ export default class App extends Component {
     }
   }
 
+  render() {
+    return (
+      <View style={styles.container}>
+        {this.state.targetCoords && this.state.latitude? <Telemetry {...this.state} /> : null}
+      </View>
+    );
+  }
+
   _getLocationAsync = async () => {
-    Location.watchPositionAsync({timeInterval: 100, accuracy : 5, distanceInterval : 10}, location => 
-    {
-      this.setState({ 
-        latitude : location.coords.latitude,
-        longitude : location.coords.longitude,
-        coordsAccuracy : location.coords.accuracy,
-      }, ()=>console.log("location set"));
-    });
+    // We check for Permissions but don't do anything with it
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+
+    Location.watchPositionAsync(
+      {
+        timeInterval: 500, 
+        accuracy : 5, 
+        distanceInterval : 10
+      }, 
+      location => 
+      {
+        this.setState({ 
+          latitude : location.coords.latitude,
+          longitude : location.coords.longitude,
+          coordsAccuracy : location.coords.accuracy,
+        }, ()=>console.log("location set"));
+      }
+    );
 
     Location.watchHeadingAsync((heading) => 
     {
-      if(Math.abs(heading.trueHeading - this.state.heading) > 15){
+      if(Math.abs(heading.trueHeading - this.state.heading) > 30){
         this.setState({ 
           heading: heading.trueHeading, 
           accuracy: heading.accuracy,
@@ -119,47 +89,17 @@ export default class App extends Component {
   };
 
   _fetchTargetCoords = async () => {
-    console.log("_fetchTargetCoords begins");
     const url = 'ws://waldo.jonathan-ray.com/ws'
     this.connection = new WebSocket(url)
     this.connection.onopen = () => {
-      console.log("Sending hey");
       this.connection.send(JSON.stringify({message: 'hey'}));
     };
     this.connection.onmessage = ({data}) => {
-      console.log(data);
       const dataJson = (JSON.parse(data))
       const targetCoords = dataJson.coordinates
       const users = dataJson.users
       this.setState({targetCoords, users,})
     };
-  }
-
-  render() {
-    return (
-      <View style={styles.container}>
-
-        {/* <Text style={styles.paragraph}>{text}</Text>
-        <Text style={styles.paragraph}>Lat: {lat}</Text>
-        <Text style={styles.nextLine}>Long: {long}</Text>
-        <Text style={styles.nextLine}>(+/- {coordsAccuracy}m)</Text>
-        <Text style={styles.paragraph}> </Text>
-        <Text style={styles.paragraph}>bearing: {headingNew}</Text>
-        <Text style={styles.paragraph}>staticBearingJune (deg): {bearingJune}</Text> */}
-        
-        {/* <Text style={styles.paragraph}>Destination Heading: {headingJune}</Text>
-        <Text style={styles.paragraph}> </Text> */}
-        {this.state.targetCoords && this.state.latitude? <Telemetry {...this.state} /> : null}
-        {/* <Arrow headingJune={headingJune} /> */}
-        {/* <Text style={styles.paragraph}> </Text>
-        <Text style={styles.paragraph}>Heading: {heading}</Text>
-        <Text style={styles.nextLine}>({headingAccuracy}°)</Text> */}
-
-
-        {/* <Map style={styles.map}/> */}
-
-      </View>
-    );
   }
 }
 

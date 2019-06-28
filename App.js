@@ -2,26 +2,7 @@ import React, { Component } from 'react';
 import { Platform, Text, View, StyleSheet, Image, } from 'react-native';
 import { Constants, Location, Permissions } from 'expo';
 import Telemetry from './Components/Telemetry';
-// import * as firebase from 'firebase';
-// import '@firebase/firestore';
 
-// // Initialize Firebase
-// const firebaseConfig = {
-//   apiKey: "AIzaSyCMtnFpkDbP-dpDnmgHeNoThkCikn4HE_k",
-//   authDomain: "theres-waldo-7b890.firebaseapp.com",
-//   databaseURL: "https://theres-waldo-7b890.firebaseio.com/",
-//   storageBucket: "gs://theres-waldo-7b890.appspot.com"
-// };
-
-// firebase.initializeApp(firebaseConfig);
-
-// const dbh = firebase.firestore();
-
-// dbh.collection("characters").doc("mario").set({
-//   employment: "plumber",
-//   outfitColor: "red",
-//   specialAttack: "fireball"
-// })
 
 export default class App extends Component {
   constructor(props){
@@ -38,69 +19,166 @@ export default class App extends Component {
     };
   }
 
-  componentWillMount() {
+  // componentWillMount() {
+  componentDidMount() {
     if (Platform.OS === 'android' && !Constants.isDevice) {
       this.setState({
         errorMessage: 'Oops, this will not work on Sketch in an Android emulator. Try it on your device!',
       });
     } else {
-      this._getLocationAsync();
-      this._fetchTargetCoords();
+      // begin auth
+      // collect the user's team assignment for their flagId and meId
     }
   }
 
   render() {
     return (
       <View style={styles.container}>
-        {this.state.targetCoords && this.state.latitude? <Telemetry {...this.state} /> : null}
+        <Telemetry flagId={"1"} meId={"1"} />
+        {/* {this.state.targetCoords && this.state.latitude? <Telemetry {...this.state} /> : null} */}
       </View>
     );
   }
 
-  _getLocationAsync = async () => {
-    // We check for Permissions but don't do anything with it
-    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+  // _getLocationAsync = async () => {
+  //   // We check for Permissions but don't do anything with it
+  //   let { status } = await Permissions.askAsync(Permissions.LOCATION);
 
-    Location.watchPositionAsync(
-      {
-        timeInterval: 500, 
-        accuracy : 5, 
-        distanceInterval : 10
-      }, 
-      location => 
-      {
-        this.setState({ 
-          latitude : location.coords.latitude,
-          longitude : location.coords.longitude,
-          coordsAccuracy : location.coords.accuracy,
-        }, ()=>console.log("location set"));
-      }
-    );
+  //   Location.watchPositionAsync(
+  //     {
+  //       timeInterval: 500, 
+  //       accuracy : 5, 
+  //       distanceInterval : 10
+  //     }, 
+  //     location => {
+  //         this.setState({ 
+  //           latitude : location.coords.latitude,
+  //           longitude : location.coords.longitude,
+  //           coordsAccuracy : location.coords.accuracy,
+  //         }, ()=>{
+  //           if (this.state.socketOn){
+  //             console.log("location set")
+  //             console.log("sending new coords to API")
+  //             this.connection.send(JSON.stringify({
+  //               // need a dynamic user identifier
+  //               type: 'user',
+  //               user: {
+  //                 id: 1,
+  //                 latitude : location.coords.latitude,
+  //                 longitude : location.coords.longitude,  
+  //               },
+  //             }))
+  //           }
+  //           else{
+  //             console.log("Tried sending new coords to API, but socket isn't online.");
+  //           }
+  //         });
+  //     }
+  //   );
 
-    Location.watchHeadingAsync((heading) => 
-    {
-      if(Math.abs(heading.trueHeading - this.state.heading) > 30){
-        this.setState({ 
-          heading: heading.trueHeading, 
-          accuracy: heading.accuracy,
-        }, ()=>console.log("heading set"));
-      }
-    });
-  };
+  //   Location.watchHeadingAsync((heading) => 
+  //   {
+  //     if(Math.abs(heading.trueHeading - this.state.heading) > 30){
+  //       this.setState({ 
+  //         heading: heading.trueHeading, 
+  //         accuracy: heading.accuracy,
+  //       }, ()=>console.log("heading set"));
+  //     }
+  //   });
+  // };
 
-  _fetchTargetCoords = async () => {
-    const url = 'ws://waldo.jonathan-ray.com/ws'
-    this.connection = new WebSocket(url)
-    this.connection.onopen = () => {
-      this.connection.send(JSON.stringify({message: 'hey'}));
-    };
-    this.connection.onmessage = ({data}) => {
-      const dataJson = (JSON.parse(data))
-      const targetCoords = dataJson.coordinates
-      const users = dataJson.users
-      this.setState({targetCoords, users,})
-    };
-  }
+  // _fetchTargetCoords = async () => {
+  //   const dataString = await fetch('http://waldo.jonathan-ray.com/')
+  //   const initialDataSet = await dataString.json();
+  //   // initialDataSet contains: 
+  //   // {
+  //   //   "flag": {
+  //   //     "1": {
+  //   //       "latitude": 33.7892719875234,
+  //   //       "longitude": -84.3732207378365,
+  //   //     },
+  //   //   },
+  //   //   "users": {
+  //   //     "1": {
+  //   //       "latitude": 33.7864576152285,
+  //   //       "longitude": -84.3775846622431,
+  //   //       "name": "Joe",
+  //   //       "pic": null,
+  //   //     },
+  //   //     "2": {
+  //   //       "latitude": 33.7939726458984,
+  //   //       "longitude": -84.3699373087979,
+  //   //       "name": "Leslie",
+  //   //       "pic": null,
+  //   //     },
+  //   //     "3": {
+  //   //       "latitude": 33.7836522399115,
+  //   //       "longitude": -84.371677005656,
+  //   //       "name": "Margaret",
+  //   //       "pic": null,
+  //   //     },
+  //   //   },
+  //   // } 
+  //   this.setState({
+  //     users: initialDataSet.users,
+  //     targetCoords: {
+  //       latitude: initialDataSet.flag[1].latitude,
+  //       longitude: initialDataSet.flag[1].longitude,
+  //     }
+  //   })
+  // }
+
+  // _socketToMe = () => {
+  //   const url = 'ws://waldo.jonathan-ray.com/ws';
+  //   this.connection = new WebSocket(url);
+  //   this.connection.onopen = () => {
+  //     this.setState({socketOn : true})
+  //   }    
+  //     this.connection.onmessage = ({data}) => {
+  //       console.log(data);
+  //       console.log(" ");
+  //       console.log("The backend sent a socket connention... was it supposed to?");
+  //       console.log(" ");
+  //       const dataJson = (JSON.parse(data));
+  //       console.log(dataJson);
+  //       switch(dataJson.type){
+  //         case("flag"):
+  //           const id = Object.keys(dataJson.flag)[0];
+  //           this.setState({
+  //             targetCoords: {
+  //               latitude: dataJson.flag[id].latitude,
+  //               longitude: dataJson.flag[id].longitude,
+  //             }
+  //           });
+  //           break;
+  //         case("user"):
+  //           // update the "All Users Object" in state
+  //           this.setState({
+  //             users: {...this.state.users, ...dataJson.user}
+  //           });
+  //           break;
+  //         default: 
+  //           break;
+  //       }
+  //     };
+  //     // this.connection.onerror(err => console.log("error!! ", err))
+  //     this.connection.onerror = (err) => console.log(`Websocket errored: ${err.message}`);
+  //     this.connection.onclose = () => {
+  //       this.setState({socketOn: false},
+  //         () => {
+  //           console.log(" ");
+  //           console.log(" ");
+  //           console.log(" ");
+  //           console.log("Lost the websocket!");
+  //           console.log(" ");
+  //           console.log(" ");
+  //           console.log("trying again...");
+  //           setTimeout(this._socketToMe, 300);
+  //         })
+  //     };
+  //   // };
+
+  // }
 }
 
 const styles = StyleSheet.create({

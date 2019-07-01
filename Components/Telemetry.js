@@ -1,9 +1,19 @@
 import React from 'react';
-import { Platform, Text, ScrollView, StyleSheet, Image, Dimensions, } from 'react-native';
+import { 
+  Platform, 
+  Text, 
+  ScrollView, 
+  StyleSheet, 
+  Image, 
+  Dimensions, 
+  View, 
+  TouchableOpacity, 
+} from 'react-native';
 import Arrow from './Arrow';
 import Tag from './Tag';
 import { Constants, Location, Permissions, MapView } from 'expo';
 import MapPins from './MapPins';
+import distVincenty from '../utils/distVincenty';
 
 const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
@@ -42,13 +52,14 @@ export default class Telemetry extends React.Component{
     };
   }
   componentDidMount(){  
-    this.scrollView.scrollTo({x: width});
+    setTimeout(()=> this.scrollView.scrollTo({x: width}), 350);
     this._getFlagAndUserCoords();
-    this._socketToMe();
-    this._watchForChanges();
+    // kick off changes
+    setTimeout(()=> this._watchForChanges(), 200);
   }
   render() {
     return(
+      <>
       <ScrollView 
         // style={styles.container}
         ref={(scrollView) => { this.scrollView = scrollView; }}    
@@ -56,6 +67,7 @@ export default class Telemetry extends React.Component{
         decelerationRate={0.9} // 'fast'
         snapToInterval={width}
         snapToAlignment={"center"}
+        height={width}
       >
         {this.state.users? 
         <>
@@ -75,14 +87,39 @@ export default class Telemetry extends React.Component{
         </>
         : null}
       </ScrollView>
+      <View style={{flexDirection: 'row', height:'15%'}}>
+        <View style={{flex: 0.5, height:'100%' , width:'50%',}} >
+          <TouchableOpacity style={{opacity: this.state.decoyDisable? .2 : 1 }} onPress={this._deployDecoy} disabled={this.state.decoyDisable} >
+            <Image
+              style={{
+                width:"100%", 
+                height:"100%", 
+              }}
+              source={require('../assets/decoy_progress.png')}
+            />
+          </TouchableOpacity>
+        </View>
+        <View style={{flex: 0.5, height:'100%' , width:'50%',}} >
+        <TouchableOpacity style={{opacity: this.state.hintDisable? .2 : 1 }} onPress={this._displayHint} disabled={this.state.hintDisable} >
+            <Image
+              style={{
+                width:"100%", 
+                height:"100%", 
+              }}
+              source={require('../assets/hint_progress.png')}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+      </>
     )
   }
 
 
   _watchForChanges = async () => {
     // We need to check for Permissions but don't do anything with it
+    console.log("_watchForChanges firing");
     let { status } = await Permissions.askAsync(Permissions.LOCATION);
-
     Location.watchPositionAsync(
       {
         timeInterval: 500, 
@@ -90,34 +127,37 @@ export default class Telemetry extends React.Component{
         distanceInterval : 10
       }, 
       (location) => {
+        console.log("... detected change in location");
         const { coords, } = location
         const { latitude, longitude, } = coords
-          this.setState({ 
-            users: {
-              ...this.state.users,
-              [this.props.meId] : {
-                ...this.state.users[this.props.meId],
-                latitude,
-                longitude,
+          if(this.state.users){
+            this.setState({ 
+              users: {
+                ...this.state.users,
+                [this.props.meId] : {
+                  ...this.state.users[this.props.meId],
+                  latitude,
+                  longitude,
+                }
               }
-            }
-          }, ()=>{
-            if (this.state.socketOn){
-              console.log("location set")
-              console.log("sending new coords to API")
-              this.connection.send(JSON.stringify({
-                type: 'user',
-                user: {
-                  id: this.props.meId,
-                  latitude : location.coords.latitude,
-                  longitude : location.coords.longitude,  
-                },
-              }))
-            }
-            else{
-              console.log("Tried sending new coords to API, but socket isn't online.");
-            }
-          });
+            }, ()=>{
+              if (this.state.socketOn){
+                console.log("location set")
+                console.log("sending new coords to API")
+                this.connection.send(JSON.stringify({
+                  type: 'user',
+                  user: {
+                    id: this.props.meId,
+                    latitude : location.coords.latitude,
+                    longitude : location.coords.longitude,  
+                  },
+                }))
+              }
+              else{
+                console.log("Tried sending new coords to API, but socket isn't online.");
+              }
+            });
+          }
       }
     );
 
@@ -134,7 +174,8 @@ export default class Telemetry extends React.Component{
   _getFlagAndUserCoords = async () => {
     const dataString = await fetch('http://waldo.jonathan-ray.com/')
     const {flag, users} = await dataString.json();
-    this.setState({ flag, users })
+    console.log("_getFlagAndUserCoords ran");
+    this.setState({ flag, users }, this._socketToMe)
     // dataString contains: 
     // {
     //   "flag": {
@@ -170,6 +211,7 @@ export default class Telemetry extends React.Component{
     const url = 'ws://waldo.jonathan-ray.com/ws';
     this.connection = new WebSocket(url);
     this.connection.onopen = () => {
+      console.log("a socket was established");
       this.setState({socketOn : true})
     }    
     this.connection.onmessage = ({data}) => {
@@ -180,13 +222,15 @@ export default class Telemetry extends React.Component{
       console.log(dataJson);
       switch(dataJson.type){
         case("flag"):
+          
           this.setState({
             flag: {
               [this.props.flagId] : {
                 latitude: dataJson.flag[this.props.flagId].latitude,
                 longitude: dataJson.flag[this.props.flagId].longitude,
               }
-            }
+            },
+            decoyDisable: dataJson.flag[this.props.flagId].decoy,
           });
           break;
         case("user"):
@@ -213,5 +257,46 @@ export default class Telemetry extends React.Component{
           setTimeout(this._socketToMe, 300);
         })
     };
+  }
+
+  _deployDecoy = () => {
+    if(this.state.socketOn && this.state.users){
+      const {latitude, longitude} = this.state.users[this.props.meId]
+      let flagId = this.props.flagId === 1? 2 : 1;
+
+      // Lock the user out for some timeout
+      // // by setting a bool to state that 
+      // // will disable the Decoy button.
+      this.setState({decoyDisable : true},
+        () => setTimeout(() => this.setState({decoyDisable : false}), 1000 * 5)
+      )
+
+      this.connection.send(JSON.stringify({
+        type: 'flag',
+        decoy: true,
+        flag: {
+          id: flagId,
+          latitude,
+          longitude,  
+        },
+      }))
+    }
+  }
+
+  _displayHint = () => {
+    this.setState({hintDisable : true},
+      () => setTimeout(() => this.setState({hintDisable : false}), 1000 * 5)
+    )
+    const {flag, users} = this.state
+    const lat1 = users[this.props.meId].latitude
+    const lon1 = users[this.props.meId].longitude
+    const lat2 = flag[this.props.flagId].latitude
+    const lon2 = flag[this.props.flagId].longitude
+    console.log("lat1: ", lat1);
+    console.log("lon1: ", lon1);
+    console.log("lat2: ", lat2);
+    console.log("lon2: ", lon2);
+    const distance = distVincenty(lat1, lon1, lat2, lon2)
+    console.log("distance to target: ", distance);
   }
 }

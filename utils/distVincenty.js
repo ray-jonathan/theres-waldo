@@ -1,5 +1,6 @@
 // This formula returns the distance between two coordinates.
 // It is more accurate than Haversine or an assumed "flat Earth" based approach
+// Returns in METERS
 export default function distVincenty(lat1, lon1, lat2, lon2) {
   function toRad(n) {
     return n * Math.PI / 180;
@@ -50,5 +51,5 @@ export default function distVincenty(lat1, lon1, lat2, lon2) {
       B = uSq / 1024 * (256 + uSq * (-128 + uSq * (74 - 47 * uSq))),
       deltaSigma = B * sinSigma * (cos2SigmaM + B / 4 * (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) - B / 6 * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma) * (-3 + 4 * cos2SigmaM * cos2SigmaM))),
       s = b * A * (sigma - deltaSigma);
-  return s.toFixed(1); // round to 1mm precision
+  return s.toFixed(1); // round to .1m precision
 };

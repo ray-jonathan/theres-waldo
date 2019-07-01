@@ -47,46 +47,43 @@ export default class Telemetry extends React.Component{
     super(props);
     this.state = {
       heading: null,
-      users: null,
+      users: {},
       flag: null,
     };
   }
   componentDidMount(){  
-    setTimeout(()=> this.scrollView.scrollTo({x: width}), 350);
     this._getFlagAndUserCoords();
-    // kick off changes
-    setTimeout(()=> this._watchForChanges(), 200);
+    setTimeout(()=> this.scrollView.scrollTo({x: width}), 1000);
   }
   render() {
+    const shouldRender = (this.state.users[this.props.meId] && this.state.users[this.props.meId].latitude )|| false ? true : false;
     return(
       <>
-      <ScrollView 
-        // style={styles.container}
-        ref={(scrollView) => { this.scrollView = scrollView; }}    
-        horizontal= {true}
-        decelerationRate={0.9} // 'fast'
-        snapToInterval={width}
-        snapToAlignment={"center"}
-        height={width}
-      >
-        {this.state.users? 
-        <>
-          <MapView 
-            style={styles.map}
-            initialRegion={{
-              latitude: this.state.users[this.props.meId].latitude,
-              longitude: this.state.users[this.props.meId].longitude,
-              latitudeDelta: 0.015,
-              longitudeDelta:  0.0015,
-            }}
+      {shouldRender? 
+        <ScrollView 
+          // style={styles.container}
+          ref={(scrollView) => { this.scrollView = scrollView; }}    
+          horizontal= {true}
+          decelerationRate={0.9} // 'fast'
+          snapToInterval={width}
+          snapToAlignment={"center"}
+          height={width}
+        >
+        <MapView 
+          style={styles.map}
+          initialRegion={{
+            latitude: this.state.users[this.props.meId].latitude,
+            longitude: this.state.users[this.props.meId].longitude,
+            latitudeDelta: 0.015,
+            longitudeDelta:  0.0015,
+          }}
           > 
-            <MapPins users={this.state.users} />
-          </MapView>
-          {this.state.flag? <Arrow style={styles.arrow} heading={this.state.heading} width={width} flag={this.state.flag} flagId={this.props.flagId} user={this.state.users[this.props.meId]} /> : null}
-          <Tag style={styles.tag} width={width} />
-        </>
-        : null}
-      </ScrollView>
+          <MapPins users={this.state.users} />
+        </MapView>
+        {this.state.flag && this.state.users[this.props.meId]? <Arrow style={styles.arrow} heading={this.state.heading} width={width} flag={this.state.flag} flagId={this.props.flagId} user={this.state.users[this.props.meId]} /> : null}
+        <Tag style={styles.tag} width={width} />
+        </ScrollView>
+      : null}
       <View style={{flexDirection: 'row', height:'15%'}}>
         <View style={{flex: 0.5, height:'100%' , width:'50%',}} >
           <TouchableOpacity style={{opacity: this.state.decoyDisable? .2 : 1 }} onPress={this._deployDecoy} disabled={this.state.decoyDisable} >
@@ -172,10 +169,14 @@ export default class Telemetry extends React.Component{
   };
 
   _getFlagAndUserCoords = async () => {
-    const dataString = await fetch('http://waldo.jonathan-ray.com/')
+    const dataString = await fetch(`https://waldo.jonathan-ray.com/first/${this.props.flagId}`)
     const {flag, users} = await dataString.json();
     console.log("_getFlagAndUserCoords ran");
-    this.setState({ flag, users }, this._socketToMe)
+    this.setState({ flag, users }, () =>  {
+      console.log("_getFlagAndUserCoords setState was successful");
+      this._socketToMe();
+      this._watchForChanges();
+    })
     // dataString contains: 
     // {
     //   "flag": {
@@ -208,7 +209,7 @@ export default class Telemetry extends React.Component{
   }
 
   _socketToMe = () => {
-    const url = 'ws://waldo.jonathan-ray.com/ws';
+    const url = 'wss://waldo.jonathan-ray.com/ws';
     this.connection = new WebSocket(url);
     this.connection.onopen = () => {
       console.log("a socket was established");
@@ -222,16 +223,17 @@ export default class Telemetry extends React.Component{
       console.log(dataJson);
       switch(dataJson.type){
         case("flag"):
-          
-          this.setState({
-            flag: {
-              [this.props.flagId] : {
-                latitude: dataJson.flag[this.props.flagId].latitude,
-                longitude: dataJson.flag[this.props.flagId].longitude,
-              }
-            },
-            decoyDisable: dataJson.flag[this.props.flagId].decoy,
-          });
+          if(dataJson.flag[this.props.flagId] || false){
+            this.setState({
+              flag: {
+                [this.props.flagId] : {
+                  latitude: dataJson.flag[this.props.flagId].latitude,
+                  longitude: dataJson.flag[this.props.flagId].longitude,
+                }
+              },
+              decoyDisable: dataJson.flag[this.props.flagId].decoy,
+            });
+          }
           break;
         case("user"):
           // update the "All Users Object" in state
@@ -292,11 +294,7 @@ export default class Telemetry extends React.Component{
     const lon1 = users[this.props.meId].longitude
     const lat2 = flag[this.props.flagId].latitude
     const lon2 = flag[this.props.flagId].longitude
-    console.log("lat1: ", lat1);
-    console.log("lon1: ", lon1);
-    console.log("lat2: ", lat2);
-    console.log("lon2: ", lon2);
     const distance = distVincenty(lat1, lon1, lat2, lon2)
-    console.log("distance to target: ", distance);
+    console.log("distance to target in meters: ", distance);
   }
 }

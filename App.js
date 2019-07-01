@@ -2,20 +2,14 @@ import React, { Component } from 'react';
 import { Platform, Text, View, StyleSheet, Image, } from 'react-native';
 import { Constants, Location, Permissions } from 'expo';
 import Telemetry from './Components/Telemetry';
+import AuthO from './Components/AuthO';
 
 
 export default class App extends Component {
   constructor(props){
     super(props);
     this.state = {
-      latitude: null,
-      longitude: null,
-      errorMessage: null,
-      heading: null,
-      accuracy: null,
-      coordsAccuracy: null,
-      targetCoords: null,
-      users: null,
+      me: {}
     };
   }
 
@@ -34,10 +28,53 @@ export default class App extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Telemetry flagId={"1"} meId={"1"} />
+        {this.state.me.team? null : <AuthO saveUser={this._updateMe} />}
+        {this.state.me.team? <Telemetry flagId={this.state.me.team} meId={this.state.me.id} /> : null}
         {/* {this.state.targetCoords && this.state.latitude? <Telemetry {...this.state} /> : null} */}
       </View>
     );
+  }
+
+  _updateMe = async (data) => {
+    this.setState({
+      me: {
+        id: data.aud,
+        name: data.name,
+        picture: data.picture,
+      }
+    },
+    async () => {
+      console.log("updating Me...");
+      const {id, name, picture} = this.state.me
+      const data = {id, name, picture}
+      console.log("data: ");
+      console.log(data);
+      fetch(`https://waldo.jonathan-ray.com/generate-user`, {
+        method: 'post',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .catch(e => console.log("error: ", e))
+      .then(async (response) => {
+        const {user} = await response.json();
+        console.log("Working on getting team assignment...");
+        console.log("user: ", user);
+        const {team} = user
+        return team;
+      })
+      .then(team => {
+        this.setState({
+          me : {
+            ... this.state.me,
+            team,
+          }
+        },
+        ()=> {console.log(`Team assignent is ${team}.`);console.log(this.state.me);})
+      })
+    })
   }
 
   // _getLocationAsync = async () => {

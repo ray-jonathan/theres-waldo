@@ -101,6 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    width: 400,
   },
   title: {
     fontSize: 20,

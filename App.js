@@ -3,6 +3,8 @@ import { Platform, Text, View, StyleSheet, Image, } from 'react-native';
 import { Constants, Location, Permissions } from 'expo';
 import Telemetry from './Components/Telemetry';
 import AuthO from './Components/AuthO';
+import { Provider } from "react-redux";
+import store from "./redux/store";
 
 
 export default class App extends Component {
@@ -27,18 +29,20 @@ export default class App extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
-        {this.state.me.team? null : <AuthO saveUser={this._updateMe} />}
-        {this.state.me.team? <Telemetry flagId={this.state.me.team} meId={this.state.me.id} /> : null}
-        {/* {this.state.targetCoords && this.state.latitude? <Telemetry {...this.state} /> : null} */}
-      </View>
+      <Provider store={store} >
+        <View style={styles.container}>
+          {this.state.me.team? null : <AuthO saveUser={this._updateMe} />}
+          {this.state.me.team? <Telemetry flagId={this.state.me.team} me={this.state.me} logout={this._logout} /> : null}
+          {/* {this.state.targetCoords && this.state.latitude? <Telemetry {...this.state} /> : null} */}
+        </View>
+      </Provider>
     );
   }
 
   _updateMe = async (data) => {
     this.setState({
       me: {
-        id: data.aud,
+        id: (data.exp).toString(),
         name: data.name,
         picture: data.picture,
       }
@@ -74,6 +78,12 @@ export default class App extends Component {
         },
         ()=> {console.log(`Team assignent is ${team}.`);console.log(this.state.me);})
       })
+    })
+  }
+
+  _logout = () => {
+    this.setState({
+      me: {}
     })
   }
 

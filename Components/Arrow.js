@@ -2,7 +2,11 @@ import React from 'react';
 // import { Svg } from 'expo';
 import { Image, View, PixelRatio } from 'react-native';
 
-export default function Arrow({user, flag, flagId, heading, width}){
+import { connect } from "react-redux";
+import { updateCoords, sleep, play } from "../redux/actions";
+
+
+const Arrow = ({user, flag, flagId, heading, width, meRedux, }) => {
   // Converts from degrees to radians.
   Math.radians = function(degrees) {
     return degrees * Math.PI / 180;
@@ -14,8 +18,8 @@ export default function Arrow({user, flag, flagId, heading, width}){
   };
 
   // Declination calculation
-  const latitude1 = Math.radians(user.latitude);
-  const longitude1 = Math.radians(user.longitude);
+  const latitude1 = Math.radians(meRedux.latitude);
+  const longitude1 = Math.radians(meRedux.longitude);
   const latitude2 = Math.radians(flag[flagId].latitude);
   const longitude2 = Math.radians(flag[flagId].longitude);
   const deltaLongitude = longitude2 - longitude1;
@@ -97,3 +101,22 @@ export default function Arrow({user, flag, flagId, heading, width}){
   </View>
   )
 }
+
+
+const mapDispatchToProps = dispatch => {
+  return {
+    updateCoords: (coords) => dispatch(updateCoords(coords)),
+    sleep: () => dispatch(sleep()),
+    play: () => dispatch(play())
+  };
+};
+
+const mapStateToProps = state => {
+  const { meRedux } = state;
+  return meRedux;
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Arrow);
